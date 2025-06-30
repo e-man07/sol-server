@@ -15,7 +15,7 @@ use base64;
 use std::str::FromStr;
 use anyhow::{Result as AnyhowResult, anyhow};
 
-// Response structures
+
 #[derive(Serialize)]
 struct ApiResponse<T> {
     success: bool,
@@ -43,7 +43,7 @@ impl<T> ApiResponse<T> {
     }
 }
 
-// Data structures for endpoints
+
 #[derive(Serialize)]
 struct KeypairResponse {
     pubkey: String,
@@ -143,7 +143,7 @@ struct TokenInstructionResponse {
     instruction_data: String,
 }
 
-// Utility functions
+
 fn validate_pubkey(pubkey_str: &str) -> AnyhowResult<Pubkey> {
     Pubkey::from_str(pubkey_str).map_err(|_| anyhow!("Invalid public key format"))
 }
@@ -161,7 +161,7 @@ fn validate_keypair_from_secret(secret_str: &str) -> AnyhowResult<Keypair> {
         .map_err(|_| anyhow!("Invalid secret key format"))
 }
 
-// Endpoint handlers
+
 async fn generate_keypair() -> Result<HttpResponse> {
     let keypair = Keypair::new();
     let pubkey = bs58::encode(keypair.pubkey().to_bytes()).into_string();
@@ -172,7 +172,7 @@ async fn generate_keypair() -> Result<HttpResponse> {
 }
 
 async fn create_token(req: web::Json<CreateTokenRequest>) -> Result<HttpResponse> {
-    // Validate inputs
+
     let mint_authority = match validate_pubkey(&req.mint_authority) {
         Ok(pk) => pk,
         Err(_) => {
@@ -189,7 +189,7 @@ async fn create_token(req: web::Json<CreateTokenRequest>) -> Result<HttpResponse
         }
     };
 
-    // Create the initialize mint instruction
+
     let instruction = token_instruction::initialize_mint(
         &spl_token::id(),
         &mint,
@@ -244,7 +244,7 @@ async fn mint_token(req: web::Json<MintTokenRequest>) -> Result<HttpResponse> {
         }
     };
 
-    // Get the associated token account for the destination
+    
     let destination_ata = get_associated_token_address(&destination, &mint);
 
     // Create the mint-to instruction
@@ -293,7 +293,7 @@ async fn sign_message(req: web::Json<SignMessageRequest>) -> Result<HttpResponse
         }
     };
 
-    // Sign the message
+    
     let message_bytes = req.message.as_bytes();
     let signature = keypair.sign_message(message_bytes);
     let signature_b64 = base64::encode(signature.as_ref());
@@ -379,7 +379,7 @@ async fn send_sol(req: web::Json<SendSolRequest>) -> Result<HttpResponse> {
         }
     };
 
-    // Validate amount (must be positive)
+
     if req.lamports == 0 {
         let response = ApiResponse::<()>::error("Amount must be greater than 0".to_string());
         return Ok(HttpResponse::BadRequest().json(response));
@@ -427,7 +427,7 @@ async fn send_token(req: web::Json<SendTokenRequest>) -> Result<HttpResponse> {
         }
     };
 
-    // Validate amount
+    
     if req.amount == 0 {
         let response = ApiResponse::<()>::error("Amount must be greater than 0".to_string());
         return Ok(HttpResponse::BadRequest().json(response));
@@ -437,7 +437,7 @@ async fn send_token(req: web::Json<SendTokenRequest>) -> Result<HttpResponse> {
     let source_ata = get_associated_token_address(&owner, &mint);
     let destination_ata = get_associated_token_address(&destination, &mint);
 
-    // Create the transfer instruction
+    
     let instruction = token_instruction::transfer(
         &spl_token::id(),
         &source_ata,
