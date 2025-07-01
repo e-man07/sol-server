@@ -473,6 +473,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
+            .route("/", web::get().to(|| async { HttpResponse::Ok().body("🚀 Server is alive!") }))
             .wrap(Logger::default())
             .route("/keypair", web::post().to(generate_keypair))
             .route("/token/create", web::post().to(create_token))
