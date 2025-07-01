@@ -219,7 +219,7 @@ async fn create_token(req: web::Json<CreateTokenRequest>) -> Result<HttpResponse
 }
 
 async fn mint_token(req: web::Json<MintTokenRequest>) -> Result<HttpResponse> {
-    // Validate inputs
+    
     let mint = match validate_pubkey(&req.mint) {
         Ok(pk) => pk,
         Err(_) => {
@@ -247,7 +247,7 @@ async fn mint_token(req: web::Json<MintTokenRequest>) -> Result<HttpResponse> {
     
     let destination_ata = get_associated_token_address(&destination, &mint);
 
-    // Create the mint-to instruction
+    
     let instruction = token_instruction::mint_to(
         &spl_token::id(),
         &mint,
@@ -278,13 +278,13 @@ async fn mint_token(req: web::Json<MintTokenRequest>) -> Result<HttpResponse> {
 }
 
 async fn sign_message(req: web::Json<SignMessageRequest>) -> Result<HttpResponse> {
-    // Validate required fields
+    
     if req.message.is_empty() || req.secret.is_empty() {
         let response = ApiResponse::<()>::error("Missing required fields".to_string());
         return Ok(HttpResponse::BadRequest().json(response));
     }
 
-    // Validate and parse the secret key
+    
     let keypair = match validate_keypair_from_secret(&req.secret) {
         Ok(kp) => kp,
         Err(_) => {
@@ -309,7 +309,7 @@ async fn sign_message(req: web::Json<SignMessageRequest>) -> Result<HttpResponse
 }
 
 async fn verify_message(req: web::Json<VerifyMessageRequest>) -> Result<HttpResponse> {
-    // Validate inputs
+    
     let pubkey_bytes = match bs58::decode(&req.pubkey).into_vec() {
         Ok(bytes) => {
             if bytes.len() != 32 {
@@ -348,7 +348,6 @@ async fn verify_message(req: web::Json<VerifyMessageRequest>) -> Result<HttpResp
         }
     };
 
-    // Verify the signature
     let message_bytes = req.message.as_bytes();
     let is_valid = ed25519_pubkey.verify(message_bytes, &ed25519_signature).is_ok();
 
@@ -362,7 +361,7 @@ async fn verify_message(req: web::Json<VerifyMessageRequest>) -> Result<HttpResp
 }
 
 async fn send_sol(req: web::Json<SendSolRequest>) -> Result<HttpResponse> {
-    // Validate inputs
+    
     let from_pubkey = match validate_pubkey(&req.from) {
         Ok(pk) => pk,
         Err(_) => {
@@ -385,7 +384,7 @@ async fn send_sol(req: web::Json<SendSolRequest>) -> Result<HttpResponse> {
         return Ok(HttpResponse::BadRequest().json(response));
     }
 
-    // Create the transfer instruction
+    
     let instruction = system_instruction::transfer(&from_pubkey, &to_pubkey, req.lamports);
     let instruction_data = base64::encode(&instruction.data);
 
@@ -402,7 +401,7 @@ async fn send_sol(req: web::Json<SendSolRequest>) -> Result<HttpResponse> {
 }
 
 async fn send_token(req: web::Json<SendTokenRequest>) -> Result<HttpResponse> {
-    // Validate inputs
+    
     let destination = match validate_pubkey(&req.destination) {
         Ok(pk) => pk,
         Err(_) => {
@@ -433,7 +432,7 @@ async fn send_token(req: web::Json<SendTokenRequest>) -> Result<HttpResponse> {
         return Ok(HttpResponse::BadRequest().json(response));
     }
 
-    // Get associated token accounts
+    
     let source_ata = get_associated_token_address(&owner, &mint);
     let destination_ata = get_associated_token_address(&destination, &mint);
 
